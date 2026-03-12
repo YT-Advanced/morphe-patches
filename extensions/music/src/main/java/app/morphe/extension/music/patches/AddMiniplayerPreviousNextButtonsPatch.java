@@ -20,7 +20,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
 @SuppressWarnings("unused")
-public class AddMiniplayerNextPreviousButtonsPatch {
+public class AddMiniplayerPreviousNextButtonsPatch {
 
     private static WeakReference<View> nextButtonViewRef = new WeakReference<>(null);
     private static WeakReference<View> previousButtonViewRef = new WeakReference<>(null);

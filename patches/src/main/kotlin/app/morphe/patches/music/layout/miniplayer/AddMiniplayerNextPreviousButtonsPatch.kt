@@ -30,7 +30,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import org.w3c.dom.Element
 
 private const val EXTENSION_CLASS_DESCRIPTOR =
-    "Lapp/morphe/extension/music/patches/AddMiniplayerNextPreviousButtonsPatch;"
+    "Lapp/morphe/extension/music/patches/AddMiniplayerPreviousNextButtonsPatch;"
 
 private const val IMAGE_VIEW_TAG =
     "com.google.android.libraries.youtube.common.ui.TouchImageView"
@@ -104,7 +104,7 @@ private val addMiniplayerButtonsResourcePatch = resourcePatch(
 }
 
 @Suppress("unused")
-val addMiniplayerNextPreviousButtonsPatch = bytecodePatch(
+val addMiniplayerPreviousNextButtonsPatch = bytecodePatch(
     name = "Add miniplayer previous and next buttons",
     description = "Adds options to show previous and next track buttons in the miniplayer."
 ) {
