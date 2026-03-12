@@ -1,7 +1,10 @@
 package app.morphe.patches.youtube.video.quality
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.misc.settings.preference.ListPreference
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
@@ -12,6 +15,8 @@ import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.shared.VideoQualityChangedFingerprint
 import app.morphe.patches.youtube.video.information.onCreateHook
 import app.morphe.patches.youtube.video.information.videoInformationPatch
+import app.morphe.util.findFieldFromToString
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 
 private const val EXTENSION_CLASS_DESCRIPTOR =
@@ -55,6 +60,37 @@ val rememberVideoQualityPatch = bytecodePatch {
         ))
 
         onCreateHook(EXTENSION_CLASS_DESCRIPTOR, "newVideoStarted")
+
+        val initialResolutionField = PlaybackStartParametersToStringFingerprint.method
+                .findFieldFromToString(FIXED_RESOLUTION_STRING)
+
+        val playbackStartParametersConstructorFingerprint = Fingerprint(
+            name = "<init>",
+            filters = listOf(
+                fieldAccess(
+                    opcode = Opcode.IPUT_OBJECT,
+                    reference = initialResolutionField
+                )
+            )
+        )
+
+        // Inject a call to override initial video quality.
+        playbackStartParametersConstructorFingerprint.match(
+            PlaybackStartParametersToStringFingerprint.classDef
+        ).let {
+            it.method.apply {
+                val index = it.instructionMatches.last().index
+                val register = getInstruction<TwoRegisterInstruction>(index).registerA
+
+                addInstructions(
+                    index,
+                    """
+                        invoke-static { v$register }, $EXTENSION_CLASS_DESCRIPTOR->getInitialVideoQuality(Lj$/util/Optional;)Lj$/util/Optional;
+                        move-result-object v$register
+                    """
+                )
+            }
+        }
 
         // Inject a call to remember the selected quality for Shorts.
         VideoQualityItemOnClickFingerprint.match(
